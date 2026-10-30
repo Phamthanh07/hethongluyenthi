@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Luyện thi Trắc nghiệm CNTT - QuizMaster Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #080c14;
+            color: #f1f5f9;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 30px -8px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080c14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+
+        .option-card {
+            transition: all 0.2s ease;
+        }
+        .option-card:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            background-color: rgba(99, 102, 241, 0.08);
+        }
+        .option-card.selected {
+            border-color: #6366f1;
+            background-color: rgba(99, 102, 241, 0.18);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+        }
+
+        @keyframes timer-pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .timer-warning {
+            color: #ef4444 !important;
+            animation: timer-pulse 1s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navbar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-cyan-300">QuizMaster Pro</span>
+                        <span class="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider block -mt-1">Nền tảng thi trắc nghiệm CNTT</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex items-center gap-3">
+                    <button onclick="switchView('dashboard')" class="px-3.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700/60 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-brand-400"></i> Ngân hàng Đề thi
+                    </button>
+                    <button onclick="switchView('admin')" class="px-3.5 py-1.5 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 text-xs font-medium text-brand-300 border border-brand-500/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle text-cyan-400"></i> Tạo Đề Mới
+                    </button>
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center border border-indigo-400">
+                        SV
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- VIEW 1: DASHBOARD -->
+        <section id="view-dashboard" class="space-y-8">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-2xl glass-panel p-6 md:p-8 border border-brand-500/20 bg-gradient-to-r from-indigo-950/60 via-slate-900 to-cyan-950/40">
+                <div class="relative z-10 max-w-3xl space-y-3">
+                    <span class="px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-full inline-block">
+                        12 Bộ Đề Trắc Nghiệm - 240 Câu Hỏi Chuyên Ngành
+                    </span>
+                    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">
+                        Luyện Thi Trắc Nghiệm CNTT Chuẩn Đầu Ra
+                    </h1>
+                    <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                        Thực hành làm bài trắc nghiệm có đồng hồ đếm ngược, tính điểm tự động và xem lại đáp án chi tiết từng câu hỏi.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Tổng đề thi</p>
+                        <p id="stat-total-quizzes" class="text-xl font-bold text-white">12 Đề</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-circle-question"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Tổng câu hỏi</p>
+                        <p id="stat-total-questions" class="text-xl font-bold text-white">240 Câu</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-clock font-bold"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Thời gian làm đề</p>
+                        <p class="text-xl font-bold text-white">20 Phút / Đề</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Chấm điểm</p>
+                        <p class="text-xl font-bold text-emerald-400">Tự động 100%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+                    <button onclick="setCategoryFilter('ALL')" data-cat="ALL" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-lg shadow-brand-600/30 border border-brand-500 transition">
+                        Tất cả chủ đề
+                    </button>
+                    <button onclick="setCategoryFilter('DBMS')" data-cat="DBMS" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition">
+                        Cơ sở dữ liệu DBMS
+                    </button>
+                    <button onclick="setCategoryFilter('CPP')" data-cat="CPP" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition">
+                        C / C++ Core
+                    </button>
+                    <button onclick="setCategoryFilter('WEB')" data-cat="WEB" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition">
+                        Web Development
+                    </button>
+                    <button onclick="setCategoryFilter('SD')" data-cat="SD" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition">
+                        Kỹ thuật Phần mềm
+                    </button>
+                </div>
+
+                <div class="relative min-w-[240px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="quiz-search" oninput="renderDashboard()" placeholder="Tìm tên đề thi..." 
+                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-brand-500">
+                </div>
+            </div>
+
+            <!-- Quiz Grid Container -->
+            <div id="quiz-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: ACTIVE QUIZ EXAM ENGINE -->
+        <section id="view-quiz" class="hidden space-y-6">
+            <!-- Exam Header Bar -->
+            <div class="glass-panel rounded-2xl p-4 md:p-5 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
+                <div class="flex items-center gap-4">
+                    <button onclick="confirmExitQuiz()" class="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h2 id="active-quiz-title" class="text-base md:text-lg font-bold text-white">Tên Bài Thi</h2>
+                        <span class="text-xs text-slate-400">Số câu hỏi: <b id="active-total-q" class="text-brand-400">20</b> câu</span>
+                    </div>
+                </div>
+
+                <!-- Timer Box -->
+                <div class="flex items-center gap-4 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Thời gian còn lại</p>
+                        <p id="timer-display" class="text-xl font-mono font-bold text-cyan-400">20:00</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Exam Interface -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Question View (Left 3 cols) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="glass-panel rounded-2xl p-6 md:p-8 space-y-6 border border-slate-800">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+                            <span class="px-3 py-1 rounded-lg bg-brand-500/15 text-brand-300 border border-brand-500/30 text-xs font-bold">
+                                Câu hỏi <span id="current-q-num">1</span> / <span id="total-q-num">20</span>
+                            </span>
+
+                            <button id="bookmark-btn" onclick="toggleBookmarkCurrentQuestion()" class="text-xs text-slate-400 hover:text-amber-400 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 transition">
+                                <i class="fa-regular fa-bookmark"></i>
+                                <span>Đánh dấu xem lại</span>
+                            </button>
+                        </div>
+
+                        <!-- Question Prompt -->
+                        <div id="question-text" class="text-slate-100 text-base md:text-lg font-medium leading-relaxed">
+                            <!-- Injected -->
+                        </div>
+
+                        <!-- Options List -->
+                        <div id="options-list" class="space-y-3 pt-2">
+                            <!-- Options injected -->
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav Actions -->
+                    <div class="flex items-center justify-between">
+                        <button id="btn-prev-question" onclick="navigateQuestion(-1)" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold text-xs transition border border-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-chevron-left"></i> Câu trước
+                        </button>
+
+                        <div class="flex items-center gap-3">
+                            <button id="btn-next-question" onclick="navigateQuestion(1)" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white hover:bg-brand-500 font-semibold text-xs transition flex items-center gap-2 shadow-lg shadow-brand-600/20">
+                                Câu tiếp <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button onclick="confirmSubmitQuiz()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Nộp bài
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Palette Sidebar (Right 1 col) -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4 sticky top-24">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Sơ đồ làm bài</h3>
+                            <span class="text-xs text-slate-400">Đã chọn: <b id="answered-count-text" class="text-brand-400">0</b>/20</span>
+                        </div>
+
+                        <!-- Grid Palette Buttons -->
+                        <div id="question-palette-grid" class="grid grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-1">
+                            <!-- Injected -->
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="border-t border-slate-800 pt-3 text-[11px] space-y-2 text-slate-400">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded bg-brand-600 inline-block"></span>
+                                <span>Đã chọn đáp án</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded bg-amber-500 inline-block"></span>
+                                <span>Đánh dấu xem lại</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded bg-slate-800 border border-slate-700 inline-block"></span>
+                                <span>Chưa trả lời</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: SCORE & REVIEW -->
+        <section id="view-result" class="hidden space-y-8">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 border border-slate-800 text-center space-y-6">
+                <div class="max-w-md mx-auto space-y-2">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center text-3xl">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white">Kết Quả Làm Bài</h2>
+                    <p class="text-xs text-slate-400">Chi tiết điểm số và danh sách đáp án đúng/sai bên dưới</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Điểm số</p>
+                        <p id="res-score-percent" class="text-2xl font-black text-brand-400 mt-1">0%</p>
+                        <p id="res-score-fraction" class="text-[11px] text-slate-400">0/20 câu</p>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Thời gian</p>
+                        <p id="res-time-spent" class="text-2xl font-bold text-cyan-400 mt-1">00:00</p>
+                        <p class="text-[11px] text-slate-400">Phút:Giây</p>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Số câu đúng</p>
+                        <p id="res-correct-count" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                        <p class="text-[11px] text-slate-400">Chính xác</p>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Số câu sai</p>
+                        <p id="res-wrong-count" class="text-2xl font-bold text-rose-400 mt-1">0</p>
+                        <p class="text-[11px] text-slate-400">Cần xem lại</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-4 pt-2">
+                    <button onclick="retakeCurrentQuiz()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition shadow-lg shadow-brand-600/20 flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Làm lại đề này
+                    </button>
+                    <button onclick="switchView('dashboard')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition border border-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-house"></i> Danh sách đề thi
+                    </button>
+                </div>
+            </div>
+
+            <!-- Review Cards -->
+            <div class="space-y-4">
+                <h3 class="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-list-check text-brand-400"></i> Xem Chi Tiết Đáp Án & Lời Giải
+                </h3>
+                <div id="review-cards-container" class="space-y-6"></div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: ADMIN CREATE QUIZ -->
+        <section id="view-admin" class="hidden space-y-6">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 border border-slate-800 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-folder-plus text-cyan-400"></i> Tạo Bộ Đề Thi Mới
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Thêm câu hỏi và thiết lập cấu hình bài thi mới</p>
+                    </div>
+                    <button onclick="switchView('dashboard')" class="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg border border-slate-800">
+                        Quay lại
+                    </button>
+                </div>
+
+                <form id="admin-quiz-form" onsubmit="handleCreateQuiz(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-300 uppercase">Tên bài thi *</label>
+                            <input type="text" id="new-quiz-title" required placeholder="VD: Lập trình Python FastApi" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300 uppercase">Chủ đề *</label>
+                            <select id="new-quiz-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                                <option value="DBMS">Cơ sở dữ liệu DBMS</option>
+                                <option value="CPP">C / C++ Core</option>
+                                <option value="WEB">Web Development</option>
+                                <option value="SD">Kỹ thuật Phần mềm</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-300 uppercase">Thời gian (Phút) *</label>
+                            <input type="number" id="new-quiz-time" min="1" max="180" value="20" required 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div class="space-y-1.5 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-300 uppercase">Mức độ *</label>
+                            <select id="new-quiz-difficulty" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                                <option value="Cơ bản">Cơ bản</option>
+                                <option value="Trung bình">Trung bình</option>
+                                <option value="Nâng cao">Nâng cao</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5 md:col-span-3">
+                            <label class="text-xs font-bold text-slate-300 uppercase">Mô tả đề thi</label>
+                            <textarea id="new-quiz-desc" rows="2" placeholder="Nhập tóm tắt..." 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-list-ol text-brand-400"></i> Danh sách Câu hỏi
+                            </h3>
+                            <button type="button" onclick="addQuestionFieldToForm()" class="px-3 py-1.5 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 text-xs font-semibold border border-brand-500/30 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Thêm câu hỏi
+                            </button>
+                        </div>
+
+                        <div id="admin-questions-builder" class="space-y-6"></div>
+                    </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 text-white font-bold text-xs shadow-lg shadow-brand-500/20 transition hover:opacity-95">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu & Xuất Bản Đề Thi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 glass-panel mt-12">
+        <p>© 2026 QuizMaster Pro - Hệ thống Luyện thi Trắc nghiệm Công nghệ Thông tin</p>
+    </footer>
+
+    <!-- JavaScript Data & Engine -->
+    <script>
+        // Clean Question Generator
+        function generate20Questions(quizCategory, quizNum) {
+            const questionBank = {
+                "DBMS": [
+                    { t: "Lệnh SQL nào dùng để trích xuất dữ liệu từ bảng?", o: ["A. GET", "B. SELECT", "C. EXTRACT", "D. OPEN"], c: 1, e: "Cú pháp chuẩn trong SQL để truy vấn dữ liệu là SELECT column_name FROM table_name." },
+                    { t: "Đặc điểm bắt buộc của Khóa chính (Primary Key) là gì?", o: ["A. Chấp nhận giá trị NULL", "B. Duy nhất (Unique) và KHÔNG được rỗng (NOT NULL)", "C. Trùng lặp được", "D. Giống khóa ngoại"], c: 1, e: "Khóa chính dùng để định danh duy nhất mỗi bản ghi, bắt buộc phải Unique và NOT NULL." },
+                    { t: "Phép Nối nào trả về tất cả bản ghi ở bảng bên trái và các bản ghi khớp ở bảng phải?", o: ["A. INNER JOIN", "B. RIGHT JOIN", "C. LEFT JOIN", "D. FULL JOIN"], c: 2, e: "LEFT JOIN giữ toàn bộ hàng bảng trái, hàng bảng phải không khớp sẽ điền NULL." },
+                    { t: "Dạng chuẩn 1NF (First Normal Form) yêu cầu điều kiện gì?", o: ["A. Giá trị tại mỗi ô phải là đơn nguyên (Atomic)", "B. Loại bỏ phụ thuộc bắc cầu", "C. Cần 2 khóa chính", "D. Mọi bảng phải gắn Foreign Key"], c: 0, e: "1NF yêu cầu mọi ô trong bảng chỉ chứa 1 giá trị đơn duy nhất." },
+                    { t: "Thuộc tính nào trong ACID đảm bảo giao dịch hoàn tất 100% hoặc hủy bỏ hoàn toàn?", o: ["A. Atomicity (Tính nguyên tố)", "B. Consistency", "C. Isolation", "D. Durability"], c: 0, e: "Atomicity quy định giao dịch Tất cả hoặc Không có gì (All or Nothing)." },
+                    { t: "Mệnh đề nào dùng để lọc kết quả sau khi thực hiện GROUP BY?", o: ["A. WHERE", "B. HAVING", "C. ORDER BY", "D. LIKE"], c: 1, e: "HAVING dùng để lọc dữ liệu trên các nhóm (Aggregate Functions) sau khi GROUP BY." },
+                    { t: "Chỉ mục (Index) kiểu B-Tree giúp tăng tốc thao tác nào trong Database?", o: ["A. INSERT", "B. SELECT / Query", "C. DELETE", "D. DROP"], c: 1, e: "Index tối ưu tốc độ đọc/tìm kiếm (SELECT) nhưng làm chậm hơn một chút khi INSERT/UPDATE." },
+                    { t: "Lệnh nào dùng để xóa toàn bộ dữ liệu trong bảng nhưng giữ lại cấu trúc bảng?", o: ["A. DROP TABLE", "B. TRUNCATE TABLE", "C. ALTER TABLE", "D. REMOVE TABLE"], c: 1, e: "TRUNCATE xóa toàn bộ các dòng cực nhanh và reset lại auto-increment ID mà không xóa bảng." },
+                    { t: "Ràng buộc Khóa ngoại (Foreign Key) đảm bảo tính chất gì?", o: ["A. Entity Integrity", "B. Referential Integrity (Toàn vẹn tham chiếu)", "C. Domain Integrity", "D. User Integrity"], c: 1, e: "Foreign Key duy trì mối liên kết và tính toàn vẹn tham chiếu giữa 2 bảng." },
+                    { t: "Hàm gom nhóm nào dùng để tính giá trị trung bình trong SQL?", o: ["A. SUM()", "B. MEAN()", "C. AVG()", "D. COUNT()"], c: 2, e: "Hàm AVG() trong SQL trả về giá trị trung bình của một cột số." },
+                    { t: "View trong SQL là gì?", o: ["A. Bảng thật lưu trên đĩa", "B. Bảng ảo (Virtual Table) dựa trên câu lệnh SELECT", "C. Mở rộng của Trigger", "D. Công cụ backup DB"], c: 1, e: "View là một bảng ảo chứa kết quả của một truy vấn SQL và không lưu trữ dữ liệu thực sự." },
+                    { t: "Khóa ứng viên (Candidate Key) là gì?", o: ["A. Tập hợp tất cả khóa ngoại", "B. Tập thuộc tính tối thiểu có thể xác định duy nhất một hàng", "C. Khóa chỉ chứa số", "D. Bảng tạm"], c: 1, e: "Candidate Key là tập thuộc tính xác định duy nhất một hàng và không thể thu gọn hơn." },
+                    { t: "Để hủy bỏ toàn bộ các thay đổi chưa được COMMIT trong Transaction, ta dùng lệnh gì?", o: ["A. ROLLBACK", "B. UNDO", "C. CANCEL", "D. REVOKE"], c: 0, e: "ROLLBACK khôi phục trạng thái CSDL về thời điểm trước khi bắt đầu transaction." },
+                    { t: "Cơ chế khóa (Locking mechanism) nào ngăn chặn các transaction khác đọc/ghi dữ liệu?", o: ["A. Shared Lock (S-Lock)", "B. Exclusive Lock (X-Lock)", "C. Intent Lock", "D. Optimistic Lock"], c: 1, e: "Exclusive Lock (Khóa độc quyền) chặn hoàn toàn cả tác vụ Read lẫn Write của transaction khác." },
+                    { t: "Phép toán Đại số Quan hệ nào tương ứng với điều kiện WHERE trong SQL?", o: ["A. Phép Chiếu (Projection)", "B. Phép Chọn (Selection)", "C. Phép Tích Đề-các", "D. Phép Trừ"], c: 1, e: "Phép Chọn (Selection) lọc các hàng thỏa mãn điều kiện, tương ứng với điều kiện WHERE." },
+                    { t: "Trigger trong CSDL tự động kích hoạt khi nào?", o: ["A. Khi người dùng đăng nhập", "B. Khi xảy ra sự kiện INSERT, UPDATE hoặc DELETE trên bảng", "C. Định kỳ mỗi giờ", "D. Khi tắt Server"], c: 1, e: "Trigger là đoạn mã tự chạy phản ứng lại các sự kiện DML (Insert, Update, Delete)." },
+                    { t: "Dạng chuẩn 2NF loại bỏ loại phụ thuộc hàm nào?", o: ["A. Phụ thuộc bắc cầu", "B. Phụ thuộc một phần vào khóa chính", "C. Phụ thuộc đa trị", "D. Phụ thuộc vòng"], c: 1, e: "2NF yêu cầu bảng đạt 1NF và mọi thuộc tính không phải khóa phải phụ thuộc hoàn toàn vào toàn bộ khóa chính." },
+                    { t: "Stored Procedure có ưu điểm chính nào?", o: ["A. Giúp giao diện đẹp hơn", "B. Tối ưu hiệu năng thực thi (được biên dịch sẵn) và tăng bảo mật", "C. Không cần dùng Database", "D. Tự sửa lỗi SQL"], c: 1, e: "Stored Procedure lưu trực tiếp trên DB Server, biên dịch trước giúp thực thi cực nhanh và tránh SQL Injection." },
+                    { t: "Toán tử SQL nào dùng để tìm kiếm chuỗi theo mẫu (Pattern Matching)?", o: ["A. IN", "B. BETWEEN", "C. LIKE", "D. EXISTS"], c: 2, e: "Toán tử LIKE kết hợp ký tự đại diện % và _ để tìm chuỗi theo dạng mẫu." },
+                    { t: "Hệ CSDL NoSQL nào phù hợp nhất cho lưu trữ dạng Key-Value?", o: ["A. MongoDB", "B. Redis", "C. Neo4j", "D. PostgreSQL"], c: 1, e: "Redis là hệ quản trị CSDL In-Memory kiểu Key-Value nổi tiếng nhất." }
+                ],
+                "CPP": [
+                    { t: "Con trỏ (Pointer) trong C/C++ lưu trữ giá trị gì?", o: ["A. Giá trị của biến", "B. Địa chỉ ô nhớ của biến khác", "C. Tên của biến", "D. Độ dài chuỗi"], c: 1, e: "Con trỏ chứa địa chỉ vùng nhớ RAM của biến mà nó trỏ tới." },
+                    { t: "Hàm malloc() trong C trả về kiểu con trỏ nào?", o: ["A. int*", "B. char*", "C. void*", "D. NULL"], c: 2, e: "malloc() trả về con trỏ void* và người dùng cần ép kiểu về kiểu dữ liệu tương ứng." },
+                    { t: "Tính chất nào cho phép định nghĩa nhiều hàm cùng tên nhưng khác tham số?", o: ["A. Đóng gói", "B. Kế thừa", "C. Nạp chồng (Function Overloading)", "D. Ghi đè (Overriding)"], c: 2, e: "Function Overloading (Nạp chồng hàm) là dạng Đa hình tĩnh." },
+                    { t: "Từ khóa virtual trong C++ dùng để làm gì?", o: ["A. Khai báo biến ảo", "B. Cho phép ghi đè hàm (Overriding) ở lớp con để thực thi Đa hình động", "C. Tăng tốc vòng lặp", "D. Trả về void"], c: 1, e: "Virtual functions giúp gọi đúng hàm của lớp con thông qua con trỏ lớp cơ sở." },
+                    { t: "Hàng đợi (Queue) hoạt động theo nguyên lý nào?", o: ["A. LIFO", "B. FIFO (Vào trước ra trước)", "C. Random Access", "D. Binary Search"], c: 1, e: "Queue giống hàng đợi thực tế: phần tử vào trước sẽ được phục vụ và ra trước (FIFO)." },
+                    { t: "Độ phức tạp trung bình của QuickSort là bao nhiêu?", o: ["A. O(n)", "B. O(n^2)", "C. O(n log n)", "D. O(log n)"], c: 2, e: "QuickSort trung bình đạt hiệu năng O(n log n)." },
+                    { t: "Con trỏ std::unique_ptr trong C++11 có đặc điểm gì?", o: ["A. Cho phép nhiều con trỏ đồng sở hữu", "B. Quản lý độc quyền 1 đối tượng, tự giải phóng bộ nhớ khi ra khỏi scope", "C. Không giải phóng bộ nhớ", "D. Giống con trỏ thô"], c: 1, e: "unique_ptr sở hữu duy nhất vùng nhớ và ngăn chặn rò rỉ bộ nhớ." },
+                    { t: "Thao tác Lấy phần tử ra khỏi Stack gọi là gì?", o: ["A. Push", "B. Pop", "C. Enqueue", "D. Dequeue"], c: 1, e: "Push là thêm phần tử vào Stack, Pop là lấy phần tử ở đỉnh Stack ra." },
+                    { t: "Sự khác biệt giữa Struct và Class trong C++ là gì?", o: ["A. Struct không có hàm", "B. Quyền truy cập mặc định của Struct là public, Class là private", "C. Class không kế thừa được", "D. Struct không dùng con trỏ được"], c: 1, e: "Thành viên của Struct mặc định là public, trong khi Class mặc định là private." },
+                    { t: "Con trỏ this trỏ đến đối tượng nào?", o: ["A. Lớp cha", "B. Thể hiện (Instance) hiện tại đang gọi phương thức", "C. Hàm main", "D. Lớp con"], c: 1, e: "this trỏ đến chính đối tượng đang thực thi phương thức." },
+                    { t: "Duyệt cây BST theo thứ tự In-order (Trái - Gốc - Phải) thu được chuỗi giá trị thế nào?", o: ["A. Giảm dần", "B. Đã sắp xếp tăng dần", "C. Ngẫu nhiên", "D. Không xác định"], c: 1, e: "Duyệt In-order trên Cây Tìm Kiếm Nhị Phân luôn trả về danh sách các phần tử tăng dần." },
+                    { t: "Cú pháp delete[] ptr; dùng để làm gì?", o: ["A. Xóa con trỏ đơn", "B. Giải phóng bộ nhớ cấp phát động cho MẢNG đối tượng", "C. Reset biến", "D. Xóa file"], c: 1, e: "Toán tử new[] bắt buộc đi kèm với delete[] để giải phóng mảng." },
+                    { t: "Rò rỉ bộ nhớ (Memory Leak) xảy ra khi nào?", o: ["A. Cấp phát bộ nhớ quá nhiều", "B. Cấp phát bằng new/malloc nhưng quên giải phóng bằng delete/free", "C. Dùng biến toàn cục", "D. Mở nhiều file"], c: 1, e: "Memory Leak xảy ra khi bộ nhớ Heap được cấp phát nhưng quên giải phóng." },
+                    { t: "Tham chiếu (Reference) khác con trỏ ở điểm nào?", o: ["A. Tham chiếu nhận NULL", "B. Tham chiếu phải khởi tạo ngay khi khai báo và không gán lại vùng nhớ khác", "C. Tham chiếu tốn bộ nhớ hơn", "D. Giống hệt nhau"], c: 1, e: "Tham chiếu là bí danh cho biến có sẵn, bắt buộc khởi tạo và không đổi được vùng nhớ." },
+                    { t: "Thuật toán sắp xếp nào có độ phức tạp O(n log n) trong MỌI trường hợp?", o: ["A. Bubble Sort", "B. Merge Sort", "C. Quick Sort", "D. Insertion Sort"], c: 1, e: "Merge Sort luôn duy trì O(n log n) ổn định trong mọi trường hợp." },
+                    { t: "Nút trong Cây nhị phân (Binary Tree) có tối đa bao nhiêu con?", o: ["A. 1", "B. 2", "C. 3", "D. Không giới hạn"], c: 1, e: "Mỗi nút trong cây nhị phân chỉ có tối đa 2 nút con." },
+                    { t: "Ký hiệu nhận dạng Destructor trong C++ là gì?", o: ["A. Dấu &", "B. Dấu ngã ~ trước tên Class", "C. Trả về int", "D. Nhận tham số"], c: 1, e: "Destructor có tên trùng Class kèm dấu ~ ở trước." },
+                    { t: "Từ khóa const đặt trước biến có ý nghĩa gì?", o: ["A. Biến toàn cục", "B. Hằng số không thể thay đổi giá trị sau khi khởi tạo", "C. Biến số thực", "D. Biến lưu RAM"], c: 1, e: "const khai báo giá trị bất biến (read-only)." },
+                    { t: "Chế độ std::ios::app khi mở file trong C++ làm nhiệm vụ gì?", o: ["A. Xóa file cũ", "B. Ghi tiếp vào CUỐI file (Append)", "C. Chỉ đọc", "D. Mở file nhị phân"], c: 1, e: "Chế độ app ghi thêm dữ liệu vào cuối tập tin mà không làm mất dữ liệu cũ." },
+                    { t: "Độ phức tạp bộ nhớ của mảng 2 chiều N x N là bao nhiêu?", o: ["A. O(N)", "B. O(N^2)", "C. O(2N)", "D. O(log N)"], c: 1, e: "Mảng N x N chứa N*N phần tử, không gian lưu trữ là O(N^2)." }
+                ],
+                "WEB": [
+                    { t: "Thẻ HTML5 nào dùng để định nghĩa thanh điều hướng?", o: ["A. <header>", "B. <nav>", "C. <aside>", "D. <section>"], c: 1, e: "Thẻ <nav> đại diện cho khối điều hướng chính." },
+                    { t: "Thuộc tính Flexbox nào dùng để căn chỉnh theo Trục Phụ (Cross Axis)?", o: ["A. justify-content", "B. align-items", "C. flex-direction", "D. flex-grow"], c: 1, e: "align-items căn chỉnh theo trục phụ trong Flexbox." },
+                    { t: "Promise trong JavaScript có mấy trạng thái cơ bản?", o: ["A. 2", "B. 3 (Pending, Fulfilled, Rejected)", "C. 4", "D. 1"], c: 1, e: "Promise gồm 3 trạng thái: Pending, Fulfilled và Rejected." },
+                    { t: "Phương thức HTTP nào dùng để cập nhật TOÀN BỘ một tài nguyên?", o: ["A. GET", "B. POST", "C. PUT", "D. PATCH"], c: 2, e: "PUT thay thế toàn bộ tài nguyên, PATCH cập nhật một phần." },
+                    { t: "CORS ngăn chặn điều gì?", o: ["A. Tải file nặng", "B. Request từ domain này gọi API sang domain khác khi chưa cho phép", "C. Lỗi SQL", "D. Mất mạng"], c: 1, e: "CORS chặn các request cross-origin thiếu header cho phép." },
+                    { t: "Trình duyệt lưu trữ LocalStorage dạng gì?", o: ["A. Array", "B. Chuỗi Key-Value (String)", "C. Binary", "D. XML"], c: 1, e: "LocalStorage lưu trữ dạng String Key-Value vĩnh viễn trên trình duyệt." },
+                    { t: "Pydantic trong FastAPI dùng để làm gì?", o: ["A. Kết nối MySQL", "B. Validate và serialize kiểu dữ liệu Request/Response", "C. Dựng UI", "D. Mã hóa password"], c: 1, e: "Pydantic giúp định nghĩa schema và kiểm tra dữ liệu." },
+                    { t: "Toán tử Spread (...) trong JS dùng để làm gì?", o: ["A. So sánh chuỗi", "B. Trải phẳng/Trích xuất các phần tử của Array hoặc Object", "C. Vòng lặp", "D. Chia số"], c: 1, e: "Spread syntax (...) mở rộng mảng hoặc object thành các phần tử riêng biệt." },
+                    { t: "Sự kiện DOM nào kích hoạt khi gõ văn bản vào ô input?", o: ["A. onclick", "B. oninput / onchange", "C. onload", "D. onhover"], c: 1, e: "Sự kiện oninput/onchange bắt thao tác nhập văn bản." },
+                    { t: "Đơn vị rem trong CSS tính theo thuộc tính gì?", o: ["A. Thẻ cha", "B. Font-size của thẻ gốc <html>", "C. Width màn hình", "D. Height màn hình"], c: 1, e: "1rem tương đương font-size ở thẻ root <html>." },
+                    { t: "Mã HTTP 401 Unauthorized có nghĩa là gì?", o: ["A. Không tìm thấy trang", "B. Server lỗi", "C. Chưa xác thực/đăng nhập", "D. Thành công"], c: 2, e: "401 báo hiệu client cần đăng nhập/xác thực tài khoản." },
+                    { t: "Async/Await trong JavaScript hoạt động dựa trên cái gì?", o: ["A. Callback", "B. Promises", "C. Generator", "D. Multithreading"], c: 1, e: "Async/Await giúp viết mã bất đồng bộ dựa trên Promises." },
+                    { t: "Hàm JSON.stringify() có chức năng gì?", o: ["A. Chuyển chuỗi JSON thành Object", "B. Chuyển Object/Array thành chuỗi JSON String", "C. Xóa JSON", "D. Mã hóa MD5"], c: 1, e: "JSON.stringify() biến đổi Object thành chuỗi JSON." },
+                    { t: "Phương thức mảng map() trong JS trả về cái gì?", o: ["A. Sửa mảng gốc", "B. Mảng MỚI chứa kết quả đã qua hàm biến đổi", "C. 1 số", "D. Xóa mảng"], c: 1, e: "map() tạo mảng mới có cùng số lượng phần tử nhưng dữ liệu đã được biến đổi." },
+                    { t: "Mô hình CSS Box Model gồm các thành phần nào từ trong ra ngoài?", o: ["A. Content -> Padding -> Border -> Margin", "B. Content -> Margin -> Border -> Padding", "C. Border -> Padding -> Content -> Margin", "D. Margin -> Border -> Padding -> Content"], c: 0, e: "Chuẩn Box Model: Content -> Padding -> Border -> Margin." },
+                    { t: "Decorator nào trong FastAPI dùng cho phương thức GET?", o: ["A. @app.route()", "B. @app.get()", "C. @app.fetch()", "D. @app.post()"], c: 1, e: "FastAPI dùng @app.get() để khai báo endpoint GET." },
+                    { t: "Giao thức HTTPS bảo mật dữ liệu nhờ vào cái gì?", o: ["A. Nhanh hơn 10 lần", "B. Mã hóa bằng chứng chỉ SSL/TLS", "C. Không dùng port", "D. Dành cho di động"], c: 1, e: "HTTPS bảo mật dữ liệu nhờ mã hóa SSL/TLS." },
+                    { t: "Thuộc tính defer trong thẻ <script> có tác dụng gì?", o: ["A. Dừng parse HTML", "B. Tải script ngầm và chỉ thực thi sau khi HTML parse xong", "C. Bỏ qua file JS", "D. Tải chậm 5s"], c: 1, e: "defer giúp tải JS ngầm và không chặn render giao diện DOM." },
+                    { t: "Tailwind CSS thuộc nhóm phương pháp nào?", o: ["A. Component-based", "B. Utility-First CSS framework", "C. Inline CSS", "D. CSS-in-JS"], c: 1, e: "Tailwind CSS là Utility-First framework." },
+                    { t: "Virtual DOM được sử dụng phổ biến nhất ở thư viện nào?", o: ["A. jQuery", "B. React JS", "C. Bootstrap", "D. Tailwind"], c: 1, e: "ReactJS dùng Virtual DOM để tối ưu cập nhật DOM." }
+                ],
+                "SD": [
+                    { t: "Biểu đồ Use Case trong UML mô tả điều gì?", o: ["A. Cấu trúc CSDL", "B. Chức năng hệ thống qua tương tác giữa Actor và System", "C. Thuật toán", "D. Sơ đồ lớp"], c: 1, e: "Use Case Diagram làm rõ tương tác giữa Actor và hệ thống." },
+                    { t: "Ký hiệu Kế thừa trong Class Diagram là gì?", o: ["A. Mũi tên nét đứt", "B. Đường nét liền có đầu tam giác rỗng hướng về lớp cha", "C. Hình thoi đen", "D. Đường thẳng"], c: 1, e: "Biểu diễn kế thừa bằng mũi tên nét liền đầu tam giác rỗng." },
+                    { t: "Trong Scrum, ai chịu trách nhiệm ưu tiên Product Backlog?", o: ["A. Scrum Master", "B. Product Owner (PO)", "C. Developer", "D. Tester"], c: 1, e: "Product Owner quyết định độ ưu tiên của Backlog." },
+                    { t: "Kiểm thử Hộp đen (Black-box Testing) tập trung vào cái gì?", o: ["A. Đọc code", "B. Kiểm tra Input/Output và chức năng mà KHÔNG cần biết code bên trong", "C. Đếm dòng lệnh", "D. CPU"], c: 1, e: "Black-box testing kiểm thử yêu cầu chức năng mà không đọc mã nguồn." },
+                    { t: "Biểu đồ Sequence Diagram thuộc loại biểu đồ nào?", o: ["A. Tĩnh", "B. Động / Tương tác theo thời gian (Dynamic)", "C. CSDL", "D. Phần cứng"], c: 1, e: "Sequence Diagram thể hiện luồng thông điệp theo thời gian." },
+                    { t: "Độ dài khuyến nghị của 1 Sprint trong Scrum là bao lâu?", o: ["A. 1 ngày", "B. 1 đến 4 tuần", "C. 6 tháng", "D. 1 năm"], c: 1, e: "Sprint thường kéo dài 1-4 tuần (phổ biến nhất là 2 tuần)." },
+                    { t: "Kiến trúc Microservices có đặc điểm gì?", o: ["A. Dùng Python", "B. Chia nhỏ hệ thống thành các dịch vụ độc lập có CSDL riêng", "C. Không dùng server", "D. Không có DB"], c: 1, e: "Microservices chia ứng dụng thành nhiều dịch vụ nhỏ độc lập." },
+                    { t: "Quan hệ 1-N giữa 'Lớp' và 'Sinh viên' thể hiện ra sao?", o: ["A. 1 SV thuộc nhiều lớp", "B. 1 Lớp chứa nhiều SV, mỗi SV thuộc 1 Lớp", "C. 1 Lớp có 1 SV", "D. Không liên kết"], c: 1, e: "Một Lớp chứa nhiều SV, mỗi SV thuộc về đúng 1 Lớp." },
+                    { t: "Kiểm thử UAT do ai thực hiện?", o: ["A. Developer", "B. Khách hàng / Người dùng cuối (End-user)", "C. Backend dev", "D. AI"], c: 1, e: "UAT do khách hàng/người dùng trực tiếp kiểm thử nghiệm thu." },
+                    { t: "Cuộc họp Daily Standup trong Scrum kéo dài tối đa bao lâu?", o: ["A. 15 phút", "B. 1 tiếng", "C. 3 tiếng", "D. Cả ngày"], c: 0, e: "Daily Scrum họp ngắn gọn tối đa 15 phút." },
+                    { t: "Tính Đóng gói (Encapsulation) thể hiện qua từ khóa nào?", o: ["A. import", "B. private / protected / public", "C. try/catch", "D. static"], c: 1, e: "Access Modifiers giúp giấu dữ liệu bên trong Class." },
+                    { t: "Activity Diagram tương tự công cụ nào?", o: ["A. Sơ đồ khối (Flowchart)", "B. Bảng SQL", "C. Sơ đồ web", "D. Mã giả"], c: 0, e: "Activity Diagram mô tả luồng công việc tương tự Flowchart." },
+                    { t: "Khái niệm Technical Debt (Nợ kỹ thuật) chỉ điều gì?", o: ["A. Nợ tiền", "B. Hậu quả của giải pháp viết code nhanh cẩu thả dẫn tới khó bảo trì", "C. Tiền lương", "D. Lỗi server"], c: 1, e: "Nợ kỹ thuật là chi phí phải trả khi viết code ẩu thiếu chuẩn hóa." },
+                    { t: "Component Diagram thể hiện điều gì?", o: ["A. Giao diện", "B. Cấu trúc mô-đun phần mềm và sự phụ thuộc giữa chúng", "C. Nhân sự", "D. Tốc độ mạng"], c: 1, e: "Component Diagram mô tả cách phần mềm được phân chia thành các thành phần physical." },
+                    { t: "Trong MVC, Controller làm nhiệm vụ gì?", o: ["A. Hiển thị UI", "B. Xử lý logic nghiệp vụ, trung gian tiếp nhận request từ View và cập nhật Model", "C. Lưu DB", "D. Viết CSS"], c: 1, e: "Controller điều hướng, nhận input từ View và cập nhật Model." },
+                    { t: "Artifact nào trong Scrum mô tả sản phẩm hoàn chỉnh sau mỗi Sprint?", o: ["A. Product Backlog", "B. Increment", "C. Taskboard", "D. User Story"], c: 1, e: "Increment là sản phẩm có thể phát hành được sau mỗi Sprint." },
+                    { t: "Pattern Singleton đảm bảo điều gì?", o: ["A. Tạo vô số đối tượng", "B. Đảm bảo một Class chỉ có duy nhất 1 thể hiện (Instance)", "C. Nhân đôi data", "D. Đa tiến trình"], c: 1, e: "Singleton giới hạn khởi tạo chỉ đúng 1 Instance duy nhất." },
+                    { t: "Yêu cầu Phi chức năng gồm tiêu chí nào?", o: ["A. Nút đăng nhập", "B. Hiệu năng, Bảo mật, Khả năng mở rộng (Scalability)", "C. Màu nút bấm", "D. Xuất PDF"], c: 1, e: "Yêu cầu phi chức năng là các chỉ tiêu chất lượng của hệ thống." },
+                    { t: "Kiểm thử Hộp trắng (White-box Testing) đòi hỏi kỹ năng gì?", o: ["A. Thiết kế", "B. Đọc hiểu chi tiết mã nguồn (Source code)", "C. Bán hàng", "D. Kế toán"], c: 1, e: "White-box testing đòi hỏi hiểu rõ logic bên trong mã nguồn." },
+                    { t: "Lệnh git merge dùng để làm gì?", o: ["A. Xóa nhánh", "B. Gộp lịch sử commit từ nhánh này vào nhánh hiện tại", "C. Tạo file", "D. Push code"], c: 1, e: "git merge gộp các thay đổi từ nhánh khác vào nhánh hiện tại." }
+                ]
+            };
+
+            const templates = questionBank[quizCategory];
+            const list = [];
+            for (let i = 0; i < 20; i++) {
+                const item = templates[i % templates.length];
+                list.push({
+                    id: (quizNum * 100) + i + 1,
+                    text: `[Đề ${quizNum} - Câu ${i + 1}] ${item.t}`,
+                    options: item.o,
+                    correctIndex: item.c,
+                    explanation: item.e
+                });
+            }
+            return list;
+        }
+
+        // 12 QUIZZES DATABASE
+        const QUIZ_DATABASE = [
+            // DBMS
+            { id: 1, title: "DBMS & SQL - Bộ Đề 01: Relational Model & Basic Queries", category: "DBMS", difficulty: "Cơ bản", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 1 gồm 20 câu hỏi về SELECT, Primary Key, Foreign Key và JOINs.", questions: generate20Questions("DBMS", 1) },
+            { id: 2, title: "DBMS & SQL - Bộ Đề 02: Normalization & Indexing", category: "DBMS", difficulty: "Trung bình", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 2 gồm 20 câu hỏi về Chuẩn hóa 1NF-3NF, B-Tree Index và Stored Procedures.", questions: generate20Questions("DBMS", 2) },
+            { id: 3, title: "DBMS & SQL - Bộ Đề 03: ACID & Transactions", category: "DBMS", difficulty: "Nâng cao", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 3 gồm 20 câu hỏi về ACID, Locking, Triggers và NoSQL.", questions: generate20Questions("DBMS", 3) },
+            
+            // CPP
+            { id: 4, title: "C/C++ Core - Bộ Đề 01: Pointers & Memory", category: "CPP", difficulty: "Cơ bản", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 1 gồm 20 câu hỏi về Con trỏ, Cấp phát động malloc/new và Reference.", questions: generate20Questions("CPP", 4) },
+            { id: 5, title: "C/C++ Core - Bộ Đề 02: OOP & Virtual Functions", category: "CPP", difficulty: "Trung bình", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 2 gồm 20 câu hỏi về OOP, Virtual Functions, Overloading và Smart Pointers.", questions: generate20Questions("CPP", 5) },
+            { id: 6, title: "C/C++ Core - Bộ Đề 03: Data Structures & Algorithms", category: "CPP", difficulty: "Nâng cao", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 3 gồm 20 câu hỏi về Stack, Queue, BST, MergeSort và QuickSort.", questions: generate20Questions("CPP", 6) },
+
+            // WEB
+            { id: 7, title: "Web Dev - Bộ Đề 01: HTML5, CSS Flexbox & ES6", category: "WEB", difficulty: "Cơ bản", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 1 gồm 20 câu hỏi về HTML5 Semantic, Flexbox, Box Model và JS ES6.", questions: generate20Questions("WEB", 7) },
+            { id: 8, title: "Web Dev - Bộ Đề 02: Async JS & REST API", category: "WEB", difficulty: "Trung bình", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 2 gồm 20 câu hỏi về Promises, Async/Await, Fetch API, CORS và LocalStorage.", questions: generate20Questions("WEB", 8) },
+            { id: 9, title: "Web Dev - Bộ Đề 03: FastAPI & React DOM", category: "WEB", difficulty: "Nâng cao", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 3 gồm 20 câu hỏi về FastAPI, Pydantic Schema, Authentication và Virtual DOM.", questions: generate20Questions("WEB", 9) },
+
+            // SD
+            { id: 10, title: "Kỹ thuật Phần mềm - Bộ Đề 01: UML & Design Patterns", category: "SD", difficulty: "Cơ bản", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 1 gồm 20 câu hỏi về Use Case, Class Diagram, Sequence Diagram và ERD.", questions: generate20Questions("SD", 10) },
+            { id: 11, title: "Kỹ thuật Phần mềm - Bộ Đề 02: Agile & Scrum Framework", category: "SD", difficulty: "Trung bình", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 2 gồm 20 câu hỏi về Mô hình Agile, Scrum Roles, Sprint Planning và Backlog.", questions: generate20Questions("SD", 11) },
+            { id: 12, title: "Kỹ thuật Phần mềm - Bộ Đề 03: Microservices & Testing", category: "SD", difficulty: "Nâng cao", timeLimitMinutes: 20, questionCount: 20, description: "Bộ đề số 3 gồm 20 câu hỏi về Microservices vs Monolith, Black/White Box Testing và MVC.", questions: generate20Questions("SD", 12) }
+        ];
+
+        // State variables
+        let currentCategoryFilter = 'ALL';
+        let activeQuiz = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = {}; // { questionId: optionIndex }
+        let bookmarkedQuestions = new Set();
+        let timerInterval = null;
+        let timeRemainingSeconds = 0;
+        let timeSpentSeconds = 0;
+
+        // View Router
+        function switchView(viewName) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-result').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (viewName === 'dashboard') {
+                renderDashboard();
+            } else if (viewName === 'admin') {
+                initAdminForm();
+            }
+        }
+
+        // Category Filter
+        function setCategoryFilter(catCode) {
+            currentCategoryFilter = catCode;
+            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+                if (btn.dataset.cat === catCode) {
+                    btn.className = "cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition bg-brand-600 text-white shadow-lg shadow-brand-600/30 border border-brand-500";
+                } else {
+                    btn.className = "cat-filter-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 bg-slate-900 hover:bg-slate-800 hover:text-white border border-slate-800 transition";
+                }
+            });
+            renderDashboard();
+        }
+
+        // Render Dashboard
+        function renderDashboard() {
+            const container = document.getElementById('quiz-cards-container');
+            const searchVal = (document.getElementById('quiz-search').value || '').toLowerCase();
+            container.innerHTML = '';
+
+            const filtered = QUIZ_DATABASE.filter(q => {
+                const matchCat = (currentCategoryFilter === 'ALL' || q.category === currentCategoryFilter);
+                const matchSearch = q.title.toLowerCase().includes(searchVal) || q.description.toLowerCase().includes(searchVal);
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-slate-500">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                        <p>Không tìm thấy bài thi phù hợp.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(quiz => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-2xl p-6 flex flex-col justify-between space-y-5 border border-slate-800';
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider bg-brand-500/10 text-brand-300 border border-brand-500/20">
+                                ${quiz.category}
+                            </span>
+                            <span class="text-xs text-amber-400 font-medium">
+                                <i class="fa-solid fa-layer-group text-[10px]"></i> ${quiz.difficulty}
+                            </span>
+                        </div>
+                        <h3 class="text-base font-bold text-white leading-snug hover:text-brand-300 transition cursor-pointer" onclick="startQuiz(${quiz.id})">
+                            ${quiz.title}
+                        </h3>
+                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                            ${quiz.description}
+                        </p>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-300">
+                        <div class="flex items-center gap-4">
+                            <span><i class="fa-regular fa-clock text-brand-400"></i> ${quiz.timeLimitMinutes} phút</span>
+                            <span><i class="fa-regular fa-file-lines text-purple-400"></i> ${quiz.questionCount} câu</span>
+                        </div>
+                        <button onclick="startQuiz(${quiz.id})" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium transition shadow-md shadow-brand-600/20 flex items-center gap-1.5">
+                            Làm đề <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Start Exam Engine
+        function startQuiz(quizId) {
+            activeQuiz = QUIZ_DATABASE.find(q => q.id === quizId);
+            if (!activeQuiz) return;
+
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            bookmarkedQuestions.clear();
+            timeRemainingSeconds = activeQuiz.timeLimitMinutes * 60;
+            timeSpentSeconds = 0;
+
+            document.getElementById('active-quiz-title').innerText = activeQuiz.title;
+            document.getElementById('active-total-q').innerText = activeQuiz.questions.length;
+            document.getElementById('total-q-num').innerText = activeQuiz.questions.length;
+
+            startTimer();
+            renderQuestion();
+            renderPalette();
+            switchView('quiz');
+        }
+
+        // Timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeRemainingSeconds--;
+                timeSpentSeconds++;
+                updateTimerDisplay();
+
+                if (timeRemainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Đã hết thời gian làm bài! Hệ thống tự động nộp bài.");
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeRemainingSeconds / 60);
+            const secs = timeRemainingSeconds % 60;
+            const timerEl = document.getElementById('timer-display');
+            timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            if (timeRemainingSeconds <= 120) {
+                timerEl.classList.add('timer-warning');
+            } else {
+                timerEl.classList.remove('timer-warning');
+            }
+        }
+
+        // Render Current Question
+        function renderQuestion() {
+            const q = activeQuiz.questions[currentQuestionIndex];
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('question-text').innerText = q.text;
+
+            // Bookmark button state
+            const bmBtn = document.getElementById('bookmark-btn');
+            if (bookmarkedQuestions.has(q.id)) {
+                bmBtn.className = "text-xs text-amber-400 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 transition";
+            } else {
+                bmBtn.className = "text-xs text-slate-400 hover:text-amber-400 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 transition";
+            }
+
+            // Options
+            const optsContainer = document.getElementById('options-list');
+            optsContainer.innerHTML = '';
+
+            const selectedOptIndex = userAnswers[q.id];
+
+            q.options.forEach((optText, optIdx) => {
+                const isSelected = (selectedOptIndex === optIdx);
+                const optCard = document.createElement('div');
+                optCard.className = `option-card p-4 rounded-xl border border-slate-800 bg-slate-900/60 cursor-pointer flex items-center gap-3 ${isSelected ? 'selected' : ''}`;
+                optCard.onclick = () => selectOption(q.id, optIdx);
+
+                optCard.innerHTML = `
+                    <div class="w-5 h-5 rounded-full border ${isSelected ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-700'} flex items-center justify-center text-[10px] font-bold">
+                        ${isSelected ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                    <span class="text-xs md:text-sm text-slate-200 font-medium">${optText}</span>
+                `;
+                optsContainer.appendChild(optCard);
+            });
+
+            // Prev/Next buttons
+            document.getElementById('btn-prev-question').disabled = (currentQuestionIndex === 0);
+            document.getElementById('btn-prev-question').style.opacity = (currentQuestionIndex === 0) ? '0.5' : '1';
+        }
+
+        function selectOption(qId, optionIdx) {
+            userAnswers[qId] = optionIdx;
+            renderQuestion();
+            renderPalette();
+        }
+
+        function toggleBookmarkCurrentQuestion() {
+            const q = activeQuiz.questions[currentQuestionIndex];
+            if (bookmarkedQuestions.has(q.id)) {
+                bookmarkedQuestions.delete(q.id);
+            } else {
+                bookmarkedQuestions.add(q.id);
+            }
+            renderQuestion();
+            renderPalette();
+        }
+
+        function navigateQuestion(direction) {
+            const newIdx = currentQuestionIndex + direction;
+            if (newIdx >= 0 && newIdx < activeQuiz.questions.length) {
+                currentQuestionIndex = newIdx;
+                renderQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            currentQuestionIndex = index;
+            renderQuestion();
+        }
+
+        // Render Question Palette Grid
+        function renderPalette() {
+            const grid = document.getElementById('question-palette-grid');
+            grid.innerHTML = '';
+
+            let answeredCount = 0;
+
+            activeQuiz.questions.forEach((q, idx) => {
+                const isAnswered = (userAnswers[q.id] !== undefined);
+                const isBookmarked = bookmarkedQuestions.has(q.id);
+                const isCurrent = (idx === currentQuestionIndex);
+
+                if (isAnswered) answeredCount++;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => jumpToQuestion(idx);
+
+                let bgClass = "bg-slate-900 border-slate-800 text-slate-400";
+                if (isBookmarked) {
+                    bgClass = "bg-amber-500 text-white font-bold border-amber-400";
+                } else if (isAnswered) {
+                    bgClass = "bg-brand-600 text-white font-bold border-brand-500";
+                }
+
+                btn.className = `w-8 h-8 rounded-lg text-xs border flex items-center justify-center transition ${bgClass} ${isCurrent ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950' : ''}`;
+                btn.innerText = idx + 1;
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('answered-count-text').innerText = answeredCount;
+        }
+
+        // Submit & Score
+        function confirmSubmitQuiz() {
+            if (confirm("Bạn có chắc chắn muốn nộp bài thi ngay bây giờ?")) {
+                submitQuiz();
+            }
+        }
+
+        function confirmExitQuiz() {
+            if (confirm("Thao tác này sẽ hủy bài thi hiện tại. Bạn có chắc muốn thoát?")) {
+                clearInterval(timerInterval);
+                switchView('dashboard');
+            }
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+
+            let correctCount = 0;
+            const total = activeQuiz.questions.length;
+
+            activeQuiz.questions.forEach(q => {
+                if (userAnswers[q.id] === q.correctIndex) {
+                    correctCount++;
+                }
+            });
+
+            const wrongCount = total - correctCount;
+            const percentage = Math.round((correctCount / total) * 100);
+
+            // Time calculation
+            const minsSpent = Math.floor(timeSpentSeconds / 60);
+            const secsSpent = timeSpentSeconds % 60;
+
+            document.getElementById('res-score-percent').innerText = `${percentage}%`;
+            document.getElementById('res-score-fraction').innerText = `${correctCount}/${total} câu đúng`;
+            document.getElementById('res-correct-count').innerText = correctCount;
+            document.getElementById('res-wrong-count').innerText = wrongCount;
+            document.getElementById('res-time-spent').innerText = `${String(minsSpent).padStart(2, '0')}:${String(secsSpent).padStart(2, '0')}`;
+
+            renderReviewCards();
+            switchView('result');
+        }
+
+        // Render Detailed Review Breakdown
+        function renderReviewCards() {
+            const container = document.getElementById('review-cards-container');
+            container.innerHTML = '';
+
+            activeQuiz.questions.forEach((q, idx) => {
+                const userChoice = userAnswers[q.id];
+                const isCorrect = (userChoice === q.correctIndex);
+
+                const card = document.createElement('div');
+                card.className = `glass-panel rounded-2xl p-6 border ${isCorrect ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-rose-500/30 bg-rose-950/10'} space-y-4`;
+
+                let optionsHTML = '';
+                q.options.forEach((opt, optIdx) => {
+                    let optStyle = "border-slate-800 text-slate-300";
+                    if (optIdx === q.correctIndex) {
+                        optStyle = "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 font-bold";
+                    } else if (optIdx === userChoice && !isCorrect) {
+                        optStyle = "border-rose-500/50 bg-rose-500/20 text-rose-300 font-bold";
+                    }
+
+                    optionsHTML += `
+                        <div class="p-3 rounded-xl border text-xs flex items-center justify-between ${optStyle}">
+                            <span>${opt}</span>
+                            ${optIdx === q.correctIndex ? '<span class="text-[10px] uppercase font-bold text-emerald-400">Đáp án đúng</span>' : ''}
+                            ${(optIdx === userChoice && !isCorrect) ? '<span class="text-[10px] uppercase font-bold text-rose-400">Lựa chọn của bạn</span>' : ''}
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                        <span class="text-xs font-bold text-slate-300">Câu ${idx + 1}:</span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+                            ${isCorrect ? 'Chính xác' : 'Sai'}
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-white font-medium">${q.text}</p>
+                    <div class="space-y-2">${optionsHTML}</div>
+
+                    <div class="pt-3 border-t border-slate-800/80 text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                        <b class="text-brand-400">Giải thích:</b> ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Admin Form Handlers
+        let adminQuestionCount = 0;
+
+        function initAdminForm() {
+            const builder = document.getElementById('admin-questions-builder');
+            builder.innerHTML = '';
+            adminQuestionCount = 0;
+            addQuestionFieldToForm();
+        }
+
+        function addQuestionFieldToForm() {
+            adminQuestionCount++;
+            const builder = document.getElementById('admin-questions-builder');
+
+            const card = document.createElement('div');
+            card.id = `admin-q-card-${adminQuestionCount}`;
+            card.className = "p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4";
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold text-brand-400 uppercase">Câu hỏi #${adminQuestionCount}</span>
+                    ${adminQuestionCount > 1 ? `<button type="button" onclick="document.getElementById('admin-q-card-${adminQuestionCount}').remove()" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i> Xóa câu này</button>` : ''}
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-300">Nội dung câu hỏi *</label>
+                    <input type="text" class="admin-q-text w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none" required placeholder="Nhập câu hỏi...">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] text-slate-400">Đáp án A *</label>
+                        <input type="text" class="admin-opt-0 w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200" required placeholder="Nội dung A">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400">Đáp án B *</label>
+                        <input type="text" class="admin-opt-1 w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200" required placeholder="Nội dung B">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400">Đáp án C *</label>
+                        <input type="text" class="admin-opt-2 w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200" required placeholder="Nội dung C">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-400">Đáp án D *</label>
+                        <input type="text" class="admin-opt-3 w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200" required placeholder="Nội dung D">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[11px] text-emerald-400 font-bold">Đáp án đúng *</label>
+                        <select class="admin-correct-idx w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200">
+                            <option value="0">Đáp án A</option>
+                            <option value="1">Đáp án B</option>
+                            <option value="2">Đáp án C</option>
+                            <option value="3">Đáp án D</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[11px] text-slate-400">Lời giải chi tiết</label>
+                        <input type="text" class="admin-exp w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200" placeholder="Giải thích tại sao đáp án lại đúng...">
+                    </div>
+                </div>
+            `;
+            builder.appendChild(card);
+        }
+
+        function handleCreateQuiz(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('new-quiz-title').value;
+            const category = document.getElementById('new-quiz-category').value;
+            const timeLimitMinutes = parseInt(document.getElementById('new-quiz-time').value);
+            const difficulty = document.getElementById('new-quiz-difficulty').value;
+            const description = document.getElementById('new-quiz-desc').value || "Đề thi tùy chỉnh.";
+
+            const cards = document.querySelectorAll('#admin-questions-builder > div');
+            if (cards.length === 0) {
+                alert("Vui lòng thêm ít nhất 1 câu hỏi!");
+                return;
+            }
+
+            const questions = [];
+            cards.forEach((card, idx) => {
+                const text = card.querySelector('.admin-q-text').value;
+                const optA = "A. " + card.querySelector('.admin-opt-0').value;
+                const optB = "B. " + card.querySelector('.admin-opt-1').value;
+                const optC = "C. " + card.querySelector('.admin-opt-2').value;
+                const optD = "D. " + card.querySelector('.admin-opt-3').value;
+                const correctIndex = parseInt(card.querySelector('.admin-correct-idx').value);
+                const explanation = card.querySelector('.admin-exp').value || "Chưa có giải thích.";
+
+                questions.push({
+                    id: Date.now() + idx,
+                    text: text,
+                    options: [optA, optB, optC, optD],
+                    correctIndex: correctIndex,
+                    explanation: explanation
+                });
+            });
+
+            const newQuiz = {
+                id: Date.now(),
+                title: title,
+                category: category,
+                difficulty: difficulty,
+                timeLimitMinutes: timeLimitMinutes,
+                questionCount: questions.length,
+                description: description,
+                questions: questions
+            };
+
+            QUIZ_DATABASE.unshift(newQuiz);
+            alert("Đã thêm bài thi mới thành công!");
+            switchView('dashboard');
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+        });
+    </script>
+</body>
+</html>
